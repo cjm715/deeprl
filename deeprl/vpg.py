@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import torch
 import gym
 from collections import namedtuple
@@ -15,12 +14,16 @@ class PolicyNet(torch.nn.Module):
         x = torch.from_numpy(x).float()
         return self.softmax(self.fc2(torch.nn.functional.relu(self.fc1(x))))
 
-    def draw_action(self, x):
+    def get_action_and_logp(self, x):
         action_prob = self.forward(x)
         m = torch.distributions.Categorical(action_prob)
         action = m.sample()
         logp = m.log_prob(action)
         return action.item(), logp
+
+    def act(self, x):
+        action, _ = self.get_action_and_logp(x)
+        return action
 
 
 class ValueNet(torch.nn.Module):
@@ -50,7 +53,7 @@ def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000,
         done = False
         steps = 0
         while not done and steps <= max_num_steps:
-            action, logp = policy.draw_action(state)
+            action, logp = policy.get_action_and_logp(state)
             newstate, reward, done, _ = env.step(action)
             state_list.append(state)
             action_list.append(action)
@@ -97,4 +100,4 @@ def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000,
             print('Iteration {}: Mean Return = {}'.format(it, mean_return))
             torch.save(policy.state_dict(), saved_policy_path)
             torch.save(value.state_dict(), saved_value_path)
-    return mean_return_list, policy, value
+    return policy, mean_return_list
