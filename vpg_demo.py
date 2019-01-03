@@ -7,6 +7,7 @@ env = gym.make('CartPole-v0')
 agent, mean_return_list = vpg(env, num_iter=200)
 
 # # Load saved model from file instead
+# import torch
 # input_size = env.observation_space.shape[0]
 # output_size = env.action_space.n
 # agent = PolicyNet(input_size, output_size)

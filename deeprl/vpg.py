@@ -37,17 +37,18 @@ class ValueNet(torch.nn.Module):
         return self.fc2(torch.nn.functional.relu(self.fc1(x)))
 
 
-def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000,
-        gamma=1.0, learning_rate=0.01, saved_policy_path='vpg_policy.pt',
-        saved_value_path='vpg_value.pt'):
+def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000, gamma=0.98,
+        policy_learning_rate=0.01, value_learning_rate=0.01,
+        policy_saved_path='vpg_policy.pt', value_saved_path='vpg_value.pt'):
     input_size = env.observation_space.shape[0]
     output_size = env.action_space.n
-    Trajectory = namedtuple('Trajectory', 'states actions rewards logp')
+    Trajectory = namedtuple('Trajectory', 'states actions rewards dones logp')
 
     def collect_trajectory():
-        state_list = []
+        state_list = []  # state_list will have 1 extra entry compared to rest.
         action_list = []
         reward_list = []
+        dones_list = []
         logp_list = []
         state = env.reset()
         done = False
@@ -58,36 +59,53 @@ def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000,
             state_list.append(state)
             action_list.append(action)
             reward_list.append(reward)
+            dones_list.append(done)
             logp_list.append(logp)
             steps += 1
             state = newstate
+
+        state_list.append(state)  # final state
+
         traj = Trajectory(states=state_list, actions=action_list,
-                          rewards=reward_list, logp=logp_list)
+                          rewards=reward_list, logp=logp_list, dones=dones_list)
         return traj
 
     def calc_returns(rewards):
         dis_rewards = [gamma**i * r for i, r in enumerate(rewards)]
         return [sum(dis_rewards[i:]) for i in range(len(dis_rewards))]
 
+    # def calc_adv(traj, value):
+    #     with torch.no_grad():
+    #         adv_list = [traj.rewards[i] + gamma * value(traj.states[i + 1]) * (1 - traj.dones[i]) - value(traj.states[i])
+    #                     for i in range(len(traj.actions))]
+    #     return adv_list
+
     policy = PolicyNet(input_size, output_size)
     value = ValueNet(input_size)
-    policy_optimizer = torch.optim.Adam(policy.parameters(), lr=learning_rate)
-    value_optimizer = torch.optim.Adam(value.parameters(), lr=learning_rate)
+    policy_optimizer = torch.optim.Adam(
+        policy.parameters(), lr=policy_learning_rate)
+    value_optimizer = torch.optim.Adam(
+        value.parameters(), lr=value_learning_rate)
 
     mean_return_list = []
     for it in range(num_iter):
         traj_list = [collect_trajectory() for _ in range(num_traj)]
         returns = [calc_returns(traj.rewards) for traj in traj_list]
 
+        # adv = [calc_adv(traj, value) for traj in traj_list]
+
         policy_loss_terms = [-1. * traj.logp[j] * (returns[i][j] - value(traj.states[j]))
-                             for i, traj in enumerate(traj_list) for j in range(len(traj.states))]
+                             for i, traj in enumerate(traj_list) for j in range(len(traj.actions))]
+
+        # policy_loss_terms = [-1. * traj.logp[j] * adv[i][j]
+        #                      for i, traj in enumerate(traj_list) for j in range(len(traj.actions))]
         policy_loss = 1. / num_traj * torch.cat(policy_loss_terms).sum()
         policy_optimizer.zero_grad()
         policy_loss.backward()
         policy_optimizer.step()
 
-        value_loss_terms = [1. / len(traj.states) * (value(traj.states[j]) - returns[i][j])**2.
-                            for i, traj in enumerate(traj_list) for j in range(len(traj.states))]
+        value_loss_terms = [1. / len(traj.actions) * (value(traj.states[j]) - returns[i][j])**2.
+                            for i, traj in enumerate(traj_list) for j in range(len(traj.actions))]
         value_loss = 1. / num_traj * torch.cat(value_loss_terms).sum()
         value_optimizer.zero_grad()
         value_loss.backward()
@@ -98,6 +116,6 @@ def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000,
         mean_return_list.append(mean_return)
         if it % 10 == 0:
             print('Iteration {}: Mean Return = {}'.format(it, mean_return))
-            torch.save(policy.state_dict(), saved_policy_path)
-            torch.save(value.state_dict(), saved_value_path)
+            torch.save(policy.state_dict(), policy_saved_path)
+            torch.save(value.state_dict(), value_saved_path)
     return policy, mean_return_list

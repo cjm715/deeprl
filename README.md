@@ -22,9 +22,10 @@ Make sure to have to have the following packages installed:
 - matplotlib
 - numpy
 - [pytorch](https://github.com/pytorch/pytorch)
-
-Download the repository by clicking the green button on this page. 
+- Download the repository by clicking the green button on this page. 
 
 ## Instructions
 
 To see a demonstration of any algorithm run the command `python [algo]_demo.py` from root of this repository. This will train an agent, save output files, and render the environment under control by the trained agent.
+
+
