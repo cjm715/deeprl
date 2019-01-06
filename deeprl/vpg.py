@@ -45,7 +45,7 @@ def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000, gamma=0.98,
     Trajectory = namedtuple('Trajectory', 'states actions rewards dones logp')
 
     def collect_trajectory():
-        state_list = []  # state_list will have 1 extra entry compared to rest.
+        state_list = []
         action_list = []
         reward_list = []
         dones_list = []
@@ -56,6 +56,7 @@ def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000, gamma=0.98,
         while not done and steps <= max_num_steps:
             action, logp = policy.get_action_and_logp(state)
             newstate, reward, done, _ = env.step(action)
+            #reward = reward + float(state[0])
             state_list.append(state)
             action_list.append(action)
             reward_list.append(reward)
@@ -64,8 +65,6 @@ def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000, gamma=0.98,
             steps += 1
             state = newstate
 
-        state_list.append(state)  # final state
-
         traj = Trajectory(states=state_list, actions=action_list,
                           rewards=reward_list, logp=logp_list, dones=dones_list)
         return traj
@@ -73,12 +72,6 @@ def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000, gamma=0.98,
     def calc_returns(rewards):
         dis_rewards = [gamma**i * r for i, r in enumerate(rewards)]
         return [sum(dis_rewards[i:]) for i in range(len(dis_rewards))]
-
-    # def calc_adv(traj, value):
-    #     with torch.no_grad():
-    #         adv_list = [traj.rewards[i] + gamma * value(traj.states[i + 1]) * (1 - traj.dones[i]) - value(traj.states[i])
-    #                     for i in range(len(traj.actions))]
-    #     return adv_list
 
     policy = PolicyNet(input_size, output_size)
     value = ValueNet(input_size)
@@ -92,13 +85,9 @@ def vpg(env, num_iter=200, num_traj=10, max_num_steps=1000, gamma=0.98,
         traj_list = [collect_trajectory() for _ in range(num_traj)]
         returns = [calc_returns(traj.rewards) for traj in traj_list]
 
-        # adv = [calc_adv(traj, value) for traj in traj_list]
-
         policy_loss_terms = [-1. * traj.logp[j] * (returns[i][j] - value(traj.states[j]))
                              for i, traj in enumerate(traj_list) for j in range(len(traj.actions))]
 
-        # policy_loss_terms = [-1. * traj.logp[j] * adv[i][j]
-        #                      for i, traj in enumerate(traj_list) for j in range(len(traj.actions))]
         policy_loss = 1. / num_traj * torch.cat(policy_loss_terms).sum()
         policy_optimizer.zero_grad()
         policy_loss.backward()
