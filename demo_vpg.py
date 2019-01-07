@@ -1,10 +1,10 @@
-from deeprl.vpg import vpg, PolicyNet
+from algos.vpg import vpg, PolicyNet
 import gym
 import matplotlib.pyplot as plt
 
 env = gym.make('CartPole-v0')
 
-agent, mean_return_list = vpg(env, num_iter=100, max_num_steps=200, gamma=1.0,
+agent, mean_return_list = vpg(env, num_iter=100, max_num_steps=100, gamma=1.0,
                               num_traj=5)
 
 plt.plot(mean_return_list)
