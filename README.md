@@ -1,5 +1,7 @@
 # Vanilla policy gradient algorithm in pytorch
 
+![cartpole](cartpole.gif)
+
 ## Introduction
 
 This repository is pytorch implementation of vanilla policy gradient to solve
