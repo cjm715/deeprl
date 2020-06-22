@@ -1,20 +1,9 @@
-# Pytorch Implementations of Deep RL Algorithms in OpenAI's SpinningUp
+# Implementing vanilla policy gradient algorithm in pytorch to solve Cart Pole environment
 
 ## Introduction
 
-This repository has pytorch implementations of the algorithms in [OpenAI's Spinning Up](https://spinningup.openai.com/en/latest/index.html). I also used the [Udacity's Deep Reinforcement Learning Nanodegree Repository](https://github.com/udacity/deep-reinforcement-learning) as a reference.
-
-Here are the following algorithms implemented so far:
-- Vanilla Policy Gradient (VPG) [~110 lines of code]
-
-<!-- - Trust Region Policy Optimization (TRPO)
-- Proximal Policy Optimization (PPO)
-- Deep Deterministic Policy Gradient (DDPG)
-- Twin Delayed DDPG 
-- Soft Actor-Critic -->
-<!-- 
-Here are some resources that helped me understand each algorithm:
- -->
+This repository is pytorch implementation of vanilla policy gradient to solve
+OpenAI's Cart Pole gym environment.
 
 ## Getting Started
 
@@ -28,5 +17,3 @@ Make sure to have to have the following packages installed:
 ## Instructions
 
 To see a demonstration of any algorithm run the command `python demo_[algo].py` from root of this repository. This will train an agent, save output files, and render the environment under control by the trained agent.
-
-
