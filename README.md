@@ -1,6 +1,6 @@
 # Vanilla policy gradient algorithm in pytorch
 
-![cartpole](cartpole.gif|width=100px)
+![cartpole](cartpole.gif)
 
 ## Introduction
 
