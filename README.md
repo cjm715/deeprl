@@ -1,4 +1,4 @@
-# Implementing vanilla policy gradient algorithm in pytorch to solve Cart Pole environment
+# Vanilla policy gradient algorithm in pytorch
 
 ## Introduction
 
