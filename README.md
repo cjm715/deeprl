@@ -4,8 +4,8 @@
 
 ## Introduction
 
-This repository is pytorch implementation of vanilla policy gradient to solve
-OpenAI's Cart Pole gym environment.
+This repository is a pytorch implementation of vanilla policy gradient used to solve
+OpenAI's Cart-Pole gym environment.
 
 ## Getting Started
 
@@ -18,4 +18,4 @@ Make sure to have to have the following packages installed:
 
 ## Instructions
 
-To see a demonstration of any algorithm run the command `python demo_[algo].py` from root of this repository. This will train an agent, save output files, and render the environment under control by the trained agent.
+To see a demonstration of any algorithm run the command `python demo_vpg.py` from root of this repository. This will train an agent, save output files, and render the environment under control by the trained agent.
